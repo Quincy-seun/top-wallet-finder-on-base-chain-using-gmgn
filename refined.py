@@ -20,7 +20,7 @@ from datetime import datetime
 INPUT_CSV             = "base_results.csv"
 OUTPUT_CSV            = "baserefined.csv"
 
-# PnL stat filters (7-day window)
+# PnL stat filters (30-day window)
 MIN_WINRATE           = 0.68    # minimum win rate (0.0 – 1.0)
 MAX_WINRATE           = 0.89    # maximum win rate — set to 1.0 for no upper limit
 MAX_PNL_LT_ND5        = 100       # max trades with PnL < -50%
@@ -40,7 +40,7 @@ REQUEST_DELAY_JITTER  = 0.4
 # ─────────────────────────────────────────────
 
 STAT_URL = (
-    "https://gmgn.ai/pf/api/v1/wallet/base/{address}/profit_stat/7d"
+    "https://gmgn.ai/pf/api/v1/wallet/base/{address}/profit_stat/30d"
     "?device_id=11f6dfb1-0336-46c4-8e1d-af367e46824e"
     "&fp_did=3193ac961ff03f6fedd3dbc953744c51"
     "&client_id=gmgn_web_20260325-12049-2069c3a"
