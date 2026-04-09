@@ -17,7 +17,7 @@ pip install -r requirements.txt
 ```
 python basecoins.py
 ```
-- To fetch top traders from memecoins that were found in the previous step - You can change config from line 18-35
+- To fetch top traders from memecoins that were found in the previous step - You can change config from line 18-35 in base.py
 ```
 python base.py
 ```
