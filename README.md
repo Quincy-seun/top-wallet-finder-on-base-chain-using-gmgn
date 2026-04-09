@@ -37,7 +37,7 @@ _______________
 # Need Help?
 Send a message on [Telegram](https://t.me/ruby_lanshi)
 _______________
-# Support me
+# Support me if you find this useful
 
 EVM:
 ```
