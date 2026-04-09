@@ -2,8 +2,8 @@
 GMGN Wallet Refiner — BASE CHAIN
 =================================
 Reads addresses from base_results.csv (column: "address"),
-fetches 7-day profit stats for each wallet from GMGN,
-applies PnL filters, and saves passing wallets to baserefined.csv.
+fetches 7-day profit stats + common stats for each wallet from GMGN,
+applies all filters, and saves passing wallets to baserefined.csv.
 """
 
 import csv
@@ -22,18 +22,35 @@ OUTPUT_CSV            = "baserefined.csv"
 
 # PnL stat filters (7-day window)
 MIN_WINRATE           = 0.68    # minimum win rate (0.0 – 1.0)
-MAX_PNL_LT_ND5        = 566       # max trades with PnL < -50%
-MAX_PNL_ND5_0X        = 1566      # max trades with PnL between -50% and 0%
-MIN_PNL_0X_2X         = 1       # min trades with PnL between 0x and 2x
-MIN_PNL_2X_5X         = 0       # min trades with PnL between 2x and 5x
-MIN_PNL_GT_5X         = 0       # min trades with PnL > 5x
+MAX_WINRATE           = 0.89    # maximum win rate — set to 1.0 for no upper limit
+MAX_PNL_LT_ND5        = 100       # max trades with PnL < -50%
+MAX_PNL_ND5_0X        = 250      # max trades with PnL between -50% and 0%
+MIN_PNL_0X_2X         = 3       # min trades with PnL between 0x and 2x
+MIN_PNL_2X_5X         = 3       # min trades with PnL between 2x and 5x
+MIN_PNL_GT_5X         = 1       # min trades with PnL > 5x
+
+# Social / common stat filters
+MIN_FOLLOW_COUNT      = 3       # minimum follower count
+MAX_FOLLOW_COUNT      = 75    # maximum follower count — set to None for no limit
+MIN_REMARK_COUNT      = 0       # minimum remark count
+MAX_REMARK_COUNT      = None    # maximum remark count — set to None for no limit
 
 REQUEST_DELAY_SEC     = 1.2
 REQUEST_DELAY_JITTER  = 0.4
 # ─────────────────────────────────────────────
 
 STAT_URL = (
-    "https://gmgn.ai/pf/api/v1/wallet/base/{address}/profit_stat/30d"
+    "https://gmgn.ai/pf/api/v1/wallet/base/{address}/profit_stat/7d"
+    "?device_id=11f6dfb1-0336-46c4-8e1d-af367e46824e"
+    "&fp_did=3193ac961ff03f6fedd3dbc953744c51"
+    "&client_id=gmgn_web_20260325-12049-2069c3a"
+    "&from_app=gmgn&app_ver=20260325-12049-2069c3a"
+    "&tz_name=Africa%2FLagos&tz_offset=3600"
+    "&app_lang=en-US&os=web&worker=0"
+)
+
+COMMON_STAT_URL = (
+    "https://gmgn.ai/api/v1/wallet_common_stat/base/{address}"
     "?device_id=11f6dfb1-0336-46c4-8e1d-af367e46824e"
     "&fp_did=3193ac961ff03f6fedd3dbc953744c51"
     "&client_id=gmgn_web_20260325-12049-2069c3a"
@@ -64,49 +81,85 @@ def load_addresses(filepath):
     return addresses
 
 
-def fetch_pnl_stat(address):
-    url = STAT_URL.format(address=address)
+def fetch_json(url, address_label):
     req = urllib.request.Request(url, headers=HEADERS)
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            return data.get("data", {}).get("pnl_detail", None)
+            return json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
-        print(f"    [HTTP {e.code}] {address}")
+        print(f"    [HTTP {e.code}] {address_label}")
     except urllib.error.URLError as e:
-        print(f"    [URL ERROR] {address}: {e.reason}")
+        print(f"    [URL ERROR] {address_label}: {e.reason}")
     except Exception as e:
-        print(f"    [ERROR] {address}: {e}")
+        print(f"    [ERROR] {address_label}: {e}")
     return None
 
 
-def passes_filters(pnl):
+def fetch_pnl_stat(address):
+    data = fetch_json(STAT_URL.format(address=address), address)
+    if data:
+        return data.get("data", {}).get("pnl_detail", None)
+    return None
+
+
+def fetch_common_stat(address):
+    data = fetch_json(COMMON_STAT_URL.format(address=address), address)
+    if data:
+        return data.get("data", None)
+    return None
+
+
+def passes_pnl_filters(pnl):
     try:
-        winrate      = float(pnl.get("winrate", 0) or 0)
-        lt_nd5       = int(pnl.get("pnl_lt_nd5_num", 0) or 0)
-        nd5_0x       = int(pnl.get("pnl_nd5_0x_num", 0) or 0)
-        pnl_0x_2x   = int(pnl.get("pnl_0x_2x_num", 0) or 0)
-        pnl_2x_5x   = int(pnl.get("pnl_2x_5x_num", 0) or 0)
-        pnl_gt_5x   = int(pnl.get("pnl_gt_5x_num", 0) or 0)
+        winrate    = float(pnl.get("winrate", 0) or 0)
+        lt_nd5     = int(pnl.get("pnl_lt_nd5_num", 0) or 0)
+        nd5_0x     = int(pnl.get("pnl_nd5_0x_num", 0) or 0)
+        pnl_0x_2x = int(pnl.get("pnl_0x_2x_num", 0) or 0)
+        pnl_2x_5x = int(pnl.get("pnl_2x_5x_num", 0) or 0)
+        pnl_gt_5x = int(pnl.get("pnl_gt_5x_num", 0) or 0)
     except (ValueError, TypeError):
         return False
 
-    if winrate      < MIN_WINRATE:      return False
-    if lt_nd5       > MAX_PNL_LT_ND5:  return False
-    if nd5_0x       > MAX_PNL_ND5_0X:  return False
-    if pnl_0x_2x   < MIN_PNL_0X_2X:   return False
-    if pnl_2x_5x   < MIN_PNL_2X_5X:   return False
-    if pnl_gt_5x   < MIN_PNL_GT_5X:    return False
-
+    if winrate    < MIN_WINRATE:     return False
+    if winrate    > MAX_WINRATE:     return False
+    if lt_nd5     > MAX_PNL_LT_ND5: return False
+    if nd5_0x     > MAX_PNL_ND5_0X: return False
+    if pnl_0x_2x < MIN_PNL_0X_2X:  return False
+    if pnl_2x_5x < MIN_PNL_2X_5X:  return False
+    if pnl_gt_5x < MIN_PNL_GT_5X:  return False
     return True
+
+
+def passes_common_filters(common):
+    try:
+        follow_count = int(common.get("follow_count", 0) or 0)
+        remark_count = int(common.get("remark_count", 0) or 0)
+    except (ValueError, TypeError):
+        return False
+
+    if follow_count < MIN_FOLLOW_COUNT:                                  return False
+    if MAX_FOLLOW_COUNT is not None and follow_count > MAX_FOLLOW_COUNT: return False
+    if remark_count < MIN_REMARK_COUNT:                                  return False
+    if MAX_REMARK_COUNT is not None and remark_count > MAX_REMARK_COUNT: return False
+    return True
+
+
+def jitter_sleep():
+    time.sleep(max(0.1, REQUEST_DELAY_SEC + random.uniform(-REQUEST_DELAY_JITTER, REQUEST_DELAY_JITTER)))
 
 
 def main():
     print("GMGN Wallet Refiner — BASE CHAIN")
     print(f"Started : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-    print(f"Config  -> min_winrate={MIN_WINRATE}, max_lt_nd5={MAX_PNL_LT_ND5}, "
-          f"max_nd5_0x={MAX_PNL_ND5_0X}, min_0x_2x={MIN_PNL_0X_2X}, "
-          f"min_2x_5x={MIN_PNL_2X_5X}, min_gt_5x={MIN_PNL_GT_5X}\n")
+    print(
+        f"PnL     -> winrate=[{MIN_WINRATE}, {MAX_WINRATE}], "
+        f"max_lt_nd5={MAX_PNL_LT_ND5}, max_nd5_0x={MAX_PNL_ND5_0X}, "
+        f"min_0x_2x={MIN_PNL_0X_2X}, min_2x_5x={MIN_PNL_2X_5X}, min_gt_5x={MIN_PNL_GT_5X}"
+    )
+    print(
+        f"Social  -> follow=[{MIN_FOLLOW_COUNT}, {MAX_FOLLOW_COUNT}], "
+        f"remark=[{MIN_REMARK_COUNT}, {MAX_REMARK_COUNT}]\n"
+    )
 
     entries = load_addresses(INPUT_CSV)
     if not entries:
@@ -115,13 +168,13 @@ def main():
 
     print(f"Loaded {len(entries)} address(es) from {INPUT_CSV}\n")
 
-    # Collect all fieldnames from input CSV for passthrough
     sample_row = entries[0][1] if entries else {}
     base_fields = list(sample_row.keys())
     extra_fields = [
         "winrate_7d", "token_num_7d",
         "pnl_lt_nd5_num", "pnl_nd5_0x_num",
         "pnl_0x_2x_num", "pnl_2x_5x_num", "pnl_gt_5x_num",
+        "follow_count", "remark_count",
     ]
     all_fields = base_fields + [f for f in extra_fields if f not in base_fields]
 
@@ -133,33 +186,58 @@ def main():
     for idx, (addr, original_row) in enumerate(entries, 1):
         print(f"[{idx}/{len(entries)}] {addr[:20]}... ", end="", flush=True)
 
+        # ── Step 1: PnL filter ──
         pnl = fetch_pnl_stat(addr)
+        jitter_sleep()
 
         if pnl is None:
-            print("skipped (fetch error)")
+            print("skipped (pnl fetch error)")
             errored += 1
-        elif passes_filters(pnl):
-            print(f"✓ PASS  winrate={float(pnl.get('winrate',0)):.2%}  "
-                  f"gt5x={pnl.get('pnl_gt_5x_num')}  "
-                  f"2x-5x={pnl.get('pnl_2x_5x_num')}")
-            row = dict(original_row)
-            row["winrate_7d"]       = round(float(pnl.get("winrate", 0) or 0), 6)
-            row["token_num_7d"]     = pnl.get("token_num", "")
-            row["pnl_lt_nd5_num"]   = pnl.get("pnl_lt_nd5_num", "")
-            row["pnl_nd5_0x_num"]   = pnl.get("pnl_nd5_0x_num", "")
-            row["pnl_0x_2x_num"]    = pnl.get("pnl_0x_2x_num", "")
-            row["pnl_2x_5x_num"]    = pnl.get("pnl_2x_5x_num", "")
-            row["pnl_gt_5x_num"]    = pnl.get("pnl_gt_5x_num", "")
-            refined.append(row)
-            passed += 1
-        else:
-            print(f"✗ fail  winrate={float(pnl.get('winrate',0)):.2%}")
-            failed += 1
+            continue
 
-        sleep_time = REQUEST_DELAY_SEC + random.uniform(
-            -REQUEST_DELAY_JITTER, REQUEST_DELAY_JITTER
+        if not passes_pnl_filters(pnl):
+            print(f"✗ fail [pnl]  winrate={float(pnl.get('winrate', 0)):.2%}")
+            failed += 1
+            continue
+
+        # ── Step 2: Common stat filter (only fetched if PnL passed) ──
+        common = fetch_common_stat(addr)
+        jitter_sleep()
+
+        if common is None:
+            print("skipped (common stat fetch error)")
+            errored += 1
+            continue
+
+        if not passes_common_filters(common):
+            follow = common.get("follow_count", "?")
+            remark = common.get("remark_count", "?")
+            print(f"✗ fail [social]  follows={follow}  remarks={remark}")
+            failed += 1
+            continue
+
+        # ── PASSED all filters ──
+        follow_count = int(common.get("follow_count", 0) or 0)
+        remark_count = int(common.get("remark_count", 0) or 0)
+        winrate      = float(pnl.get("winrate", 0))
+        print(
+            f"✓ PASS  winrate={winrate:.2%}  "
+            f"follows={follow_count}  remarks={remark_count}  "
+            f"gt5x={pnl.get('pnl_gt_5x_num')}"
         )
-        time.sleep(max(0.1, sleep_time))
+
+        row = dict(original_row)
+        row["winrate_7d"]     = round(winrate, 6)
+        row["token_num_7d"]   = pnl.get("token_num", "")
+        row["pnl_lt_nd5_num"] = pnl.get("pnl_lt_nd5_num", "")
+        row["pnl_nd5_0x_num"] = pnl.get("pnl_nd5_0x_num", "")
+        row["pnl_0x_2x_num"]  = pnl.get("pnl_0x_2x_num", "")
+        row["pnl_2x_5x_num"]  = pnl.get("pnl_2x_5x_num", "")
+        row["pnl_gt_5x_num"]  = pnl.get("pnl_gt_5x_num", "")
+        row["follow_count"]   = follow_count
+        row["remark_count"]   = remark_count
+        refined.append(row)
+        passed += 1
 
     # ── Save output ──
     if refined:
