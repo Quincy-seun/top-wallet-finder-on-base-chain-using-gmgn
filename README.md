@@ -26,6 +26,7 @@ python base.py
 python refined.py
 ```
 4. Wallets saved to baserefined.csv
+5. Check wallet pnl calendar on gmgn.ai to confirm whether it is suitable for copytrading or not (avg holding duration, avg number of buys vs sells etc)
 _________________
 # 🧪 How It Works
 1. Scans gmgn website for memecoins that were created within specified timeframe
