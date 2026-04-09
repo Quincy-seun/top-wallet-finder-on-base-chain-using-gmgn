@@ -21,8 +21,28 @@ python basecoins.py
 ```
 python base.py
 ```
-- Adding strict filters that weeds out bots/unprofitable wallets to save time
+- Adding strict filters that weed out bots/unprofitable wallets to save time
 ```
 python refined.py
 ```
 4. Wallets saved to baserefined.csv
+_________________
+# 🧪 How It Works
+1. Scans gmgn website for memecoins that were created within specified timeframe
+2. Fetches the top traders for each coin that was scanned
+3. Selects wallets that appear multiple times across scanned coins (usually an indicator of a good trader)
+4. Applies stricter profit filters to further narrow down the fetched wallets
+_______________
+# Need Help?
+Send a message on [Telegram](https://t.me/ruby_lanshi)
+_______________
+# Support me
+
+EVM:
+```
+0x5534B7a62A7313f78a2B526300b29342BdeE2580
+```
+Solana: 
+```
+AbifdZMtuUWcYBnu1tJrRgDecrp9yT8bahFenP8NgADU
+```
