@@ -13,7 +13,7 @@ pip install -r requirements.txt
 ```
 
 3. Run the script in this order:
-- To fetch memecoins on base chain within X timeframe (1m, 5m, 1h, 6h,24h) - You can adjust this in line 19 of basecoins.py
+- To fetch memecoins on base chain within X timeframe (1m, 5m, 1h, 6h, 24h) - You can adjust this in line 19 of basecoins.py
 ```
 python basecoins.py
 ```
@@ -21,3 +21,8 @@ python basecoins.py
 ```
 python base.py
 ```
+- Adding strict filters that weeds out bots/unprofitable wallets to save time
+```
+python refined.py
+```
+4. Wallets saved to baserefined.csv
