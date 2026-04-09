@@ -11,6 +11,7 @@ cd top-wallet-finder-on-base-chain-using-gmgn
 ```
 pip install -r requirements.txt
 ```
+
 3. Run the script in this order:
 - To fetch memecoins on base chain within X timeframe (1m, 5m, 1h, 6h,24h) - You can adjust this in line 19 of basecoins.py
 ```
