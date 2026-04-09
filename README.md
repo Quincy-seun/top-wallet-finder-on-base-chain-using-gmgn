@@ -21,7 +21,7 @@ python basecoins.py
 ```
 python base.py
 ```
-- Adding strict filters that weed out bots/unprofitable wallets to save time
+- Adding strict filters that weed out bots/unprofitable wallets to save time - Adjust in the link on line 43 [1d, 7d, 30d]
 ```
 python refined.py
 ```
