@@ -20,23 +20,23 @@ from datetime import datetime
 INPUT_CSV             = "base_results.csv"
 OUTPUT_CSV            = "baserefined.csv"
 
-# PnL stat filters (30-day window)
+# PnL stat filters (7-day window)
 MIN_WINRATE           = 0.68    # minimum win rate (0.0 – 1.0)
-MAX_WINRATE           = 0.89    # maximum win rate — set to 1.0 for no upper limit
+MAX_WINRATE           = 0.9    # maximum win rate — set to 1.0 for no upper limit
 MAX_PNL_LT_ND5        = 100       # max trades with PnL < -50%
 MAX_PNL_ND5_0X        = 250      # max trades with PnL between -50% and 0%
-MIN_PNL_0X_2X         = 3       # min trades with PnL between 0x and 2x
-MIN_PNL_2X_5X         = 3       # min trades with PnL between 2x and 5x
-MIN_PNL_GT_5X         = 1       # min trades with PnL > 5x
+MIN_PNL_0X_2X         = 2       # min trades with PnL between 0x and 2x
+MIN_PNL_2X_5X         = 0       # min trades with PnL between 2x and 5x
+MIN_PNL_GT_5X         = 0       # min trades with PnL > 5x
 
 # Social / common stat filters
 MIN_FOLLOW_COUNT      = 3       # minimum follower count
-MAX_FOLLOW_COUNT      = 75    # maximum follower count — set to None for no limit
+MAX_FOLLOW_COUNT      = 95    # maximum follower count — set to None for no limit
 MIN_REMARK_COUNT      = 0       # minimum remark count
 MAX_REMARK_COUNT      = None    # maximum remark count — set to None for no limit
 
-REQUEST_DELAY_SEC     = 1.2
-REQUEST_DELAY_JITTER  = 0.4
+REQUEST_DELAY_SEC     = 1.9
+REQUEST_DELAY_JITTER  = 0.7
 # ─────────────────────────────────────────────
 
 STAT_URL = (
