@@ -50,3 +50,12 @@ AbifdZMtuUWcYBnu1tJrRgDecrp9yT8bahFenP8NgADU
 # Miscellaneous
 If you get HTTP 401 error when running refined.py, you must change bearer authentication in LINE 54 by getting a new authentication token from gmgn site.
 ______________________________
+- Open/search for any wallet page on gmgn.ai
+- Right click on any area and click Inspect page, a new window will open
+- Press Ctrl + R to refresh, wait for the page to reload
+- Head to the Network tab and press Ctrl + F to open the find bar
+- Paste this "gmgn.ai/pf/api/v1/wallet/base" and hit Enter
+- Click the URL result that pops up
+- Under Headers, scroll down till you see "Authorization" and copy the authorization token (from "eyJhb...")
+- Go to line 54 of refined.py and replace the existing token with the new one you just copied.
+- Save and run the script again.
