@@ -17,7 +17,7 @@ except ImportError:
 #  EDITABLE PARAMETERS
 # ============================================================
 TIMEFRAME   = "24h"    # Options: 1m, 5m, 1h, 6h, 24h
-TOP_N       = 450     # How many tokens to fetch
+TOP_N       = 3000     # How many tokens to fetch
 MIN_VOLUME  = 25000       # Minimum volume filter (0 = no filter)
 CHAIN       = "base"  # Chain: base, eth, sol, bsc, etc.
 
@@ -43,7 +43,7 @@ FILTERS = ["not_honeypot", "verified", "renounced"]
 #        The script uses curl_cffi to match Chrome's TLS fingerprint.
 #        Install it once:  pip install curl_cffi
 #
-COOKIE_STRING = "cf_clearance=y0t7bN3DHm_uSZvJYEhiGSO4qiYJO7lyncXsgLP2kiM-1759727174-1.2.1.1-0N_a.l4CDl5.b9rx9BZEFZI5RPYQRAYNeFghFVVTKNyq4AxmQjMYMv0vjcAblxPpj224KN_FllJjfF.394YoeSpRW5NHlSQe6QbIhlkBkTIiAIlUa_CISF4UBrEA7drSYLqprwXvEw3yWDQg2pZHLeMzE65pdTpdX6alXC5rDUS3HsPPLqmF3uLRQKbPGO_MY1U_6izSPKzQo_AlbsASUeKN_xyO1hkroPu6RNYF_74; sid=gmgn%7C6980259ed846f790981e26482f6392ed; _ga_UGLVBMV4Z0=GS1.2.1773746309961506.95068faaf4c1f302c7b5213087f5cdf2.Etbr2vSk0537EhgLeseXpA%3D%3D.mk9%2BmcOlav5i0PKX6DQG8A%3D%3D.khYZicHOkCz1rkthOC%2B7Hw%3D%3D.fSzGp532apqR0Prn7%2B%2BAeg%3D%3D; __cf_bm=BYj8f79i5Pqg8hSlr7TnVaU8iqC30cITFwa.rSyTTsw-1773746852.335027-1.0.1.1-XKCiZbzz6O.pkeD6DL0kpx5ehgfZar6RDYZhI1aYGZ_G3jVCyPXB7NGuChwKmhlRk7CI8Ynd_jzh0WZparyny0Agu7yoYmFikWCADA87SvdTQ8_1V15dAnYqDlWcZ1VG"
+COOKIE_STRING = "_did=7eda44bcbc92554c7c57b1e1f5f761d4; sid=gmgn%7C3c8f8e06d61fbbcda6b352791cf684d8; _ga_UGLVBMV4Z0=GS1.2.1779480778755408.95068faaf4c1f302c7b5213087f5cdf2.UxkI8KgNLvVn5mqDAqOm4g%3D%3D.ih50KtROEhHXbG06uvRb3g%3D%3D.mXpAGaCAKnw23z27JDuqQg%3D%3D.s9fEecAzseFWVmTEw73pww%3D%3D; __cf_bm=3uM89tr4v3mMQcs4ipn_KyoAMT7xj.pMJKIzFiRg4JY-1779481514.884629-1.0.1.1-M_df_vJyNSnaCr16waAvj4fCOHlJhtavkzcWDoKgRVqic95xeIjtQbaCbVgFTqfHUlsXnksX3qZdMZWZqhWeVjzGMVnpwZ2aDHcsh.GyJRSVgJmNZDIHKe_DHq_Ga_Nu"
 
 # ============================================================
 #  SESSION PARAMS  — update from DevTools URL if needed
