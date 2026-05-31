@@ -47,3 +47,6 @@ Solana:
 ```
 AbifdZMtuUWcYBnu1tJrRgDecrp9yT8bahFenP8NgADU
 ```
+# Miscellaneous
+If you get HTTP 401 error when running refined.py, you must change bearer authentication in LINE 54 by getting a new authentication token from gmgn site.
+______________________________
