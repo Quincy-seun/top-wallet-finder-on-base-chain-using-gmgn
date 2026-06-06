@@ -43,7 +43,7 @@ FILTERS = ["not_honeypot", "verified", "renounced"]
 #        The script uses curl_cffi to match Chrome's TLS fingerprint.
 #        Install it once:  pip install curl_cffi
 #
-COOKIE_STRING = "_did=7eda44bcbc92554c7c57b1e1f5f761d4; sid=gmgn%7C3c8f8e06d61fbbcda6b352791cf684d8; _ga_UGLVBMV4Z0=GS1.2.1779480778755408.95068faaf4c1f302c7b5213087f5cdf2.UxkI8KgNLvVn5mqDAqOm4g%3D%3D.ih50KtROEhHXbG06uvRb3g%3D%3D.mXpAGaCAKnw23z27JDuqQg%3D%3D.s9fEecAzseFWVmTEw73pww%3D%3D; __cf_bm=3uM89tr4v3mMQcs4ipn_KyoAMT7xj.pMJKIzFiRg4JY-1779481514.884629-1.0.1.1-M_df_vJyNSnaCr16waAvj4fCOHlJhtavkzcWDoKgRVqic95xeIjtQbaCbVgFTqfHUlsXnksX3qZdMZWZqhWeVjzGMVnpwZ2aDHcsh.GyJRSVgJmNZDIHKe_DHq_Ga_Nu"
+COOKIE_STRING = "_did=7eda44bcbc92554c7c57b1e1f5f761d4; sid=gmgn%7Cd4b3eeb82eb43c19a8d6f08835f26b88; _ga_UGLVBMV4Z0=GS1.2.1780776031359550.95068faaf4c1f302c7b5213087f5cdf2.YIo6MGjouuZChRBkaPLCIg%3D%3D.y4%2F7vqm0o28ckat5PWUGRA%3D%3D.zkeNf8ZuLxytN6C19OyCSg%3D%3D.IWu7GxrLLIhwhIKOvT4bUA%3D%3D; __cf_bm=6Bg7idf7RRy0CC3TVZ6TlB61Kp8bpv0P4HmiehgEmX0-1780776872.7560558-1.0.1.1-ABq9DW.h32zGRFNhX4XKohO6A0z8nOwFxRFl1wbj4MLqMPlvxeZHR9VwtfGxMf.vxzPiw5srnvEOHbCtXzeWBca3sCv9oD3LRq9E8k6sZ3F58H51VnCbuTJTazFs2SSo"
 
 # ============================================================
 #  SESSION PARAMS  — update from DevTools URL if needed
