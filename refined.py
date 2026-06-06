@@ -4,15 +4,17 @@ GMGN Wallet Refiner — BASE CHAIN
 Reads addresses from base_results.csv (column: "address"),
 fetches 7-day profit stats + common stats for each wallet from GMGN,
 applies all filters, and saves passing wallets to baserefined.csv.
+
+Uses curl_cffi for Cloudflare bypass — no manual token refresh needed.
 """
 
 import csv
 import json
 import time
 import random
-import urllib.request
 import urllib.error
 from datetime import datetime
+from curl_cffi import requests as cffi_requests
 
 # ─────────────────────────────────────────────
 #  CONFIG
@@ -40,8 +42,8 @@ REQUEST_DELAY_JITTER  = 0.7
 # ─────────────────────────────────────────────
 
 # ─────────────────────────────────────────────
-#  AUTH — refresh these when 401s start again
-#  (~30 min expiry on BEARER and __cf_bm cookie)
+#  AUTH — only needed as fallback if cffi alone
+#  gets blocked. Refresh from DevTools if so.
 # ─────────────────────────────────────────────
 DEVICE_ID = "c4ea5ed1-593d-4595-9237-0ac661aa2620"
 FP_DID    = "c08073aa11d15b71d86d950c99a0b034"
@@ -54,8 +56,8 @@ BEARER = (
 
 COOKIE = (
     "_did=7eda44bcbc92554c7c57b1e1f5f761d4; "
-    "sid=gmgn%7Ceb6ac80bd8eb0d4e8add1ae61ecbdafa; "
-    "_ga_UGLVBMV4Z0=GS1.2.1780250470573143.95068faaf4c1f302c7b5213087f5cdf2.YIo6MGjouuZChRBkaPLCIg%3D%3D.Zp5cZt5CqQTkUq6MxeJ13Q%3D%3D.qUggdMCrV8iCCqR5uUaKfw%3D%3D.mgZZSbTmwpHPhNU7nTbhDA%3D%3D"
+    "sid=gmgn%7Cd4b3eeb82eb43c19a8d6f08835f26b88; "
+    "_ga_UGLVBMV4Z0=GS1.2.1780776031359550.95068faaf4c1f302c7b5213087f5cdf2.YIo6MGjouuZChRBkaPLCIg%3D%3D.y4%2F7vqm0o28ckat5PWUGRA%3D%3D.zkeNf8ZuLxytN6C19OyCSg%3D%3D.IWu7GxrLLIhwhIKOvT4bUA%3D%3D"
 )
 # ─────────────────────────────────────────────
 
@@ -71,14 +73,12 @@ BASE_PARAMS = (
 STAT_URL        = "https://gmgn.ai/pf/api/v1/wallet/base/{address}/profit_stat/7d" + BASE_PARAMS
 COMMON_STAT_URL = "https://gmgn.ai/api/v1/wallet_common_stat/base/{address}" + BASE_PARAMS
 
+# Single persistent session — handles cookies and TLS fingerprint automatically
+session = cffi_requests.Session(impersonate="chrome120")
+
 
 def make_headers(address=""):
     return {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/122.0.0.0 Safari/537.36"
-        ),
         "Accept": "application/json, text/plain, */*",
         "Accept-Language": "en;q=0.6",
         "Authorization": f"Bearer {BEARER}",
@@ -101,19 +101,17 @@ def load_addresses(filepath):
 
 
 def fetch_json(url, address_label, address=""):
-    req = urllib.request.Request(url, headers=make_headers(address))
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            return json.loads(resp.read().decode("utf-8"))
-    except urllib.error.HTTPError as e:
-        print(f"    [HTTP {e.code}] {address_label}")
-        if e.code == 401:
-            print("    ⚠  Bearer token expired — update BEARER and COOKIE in the AUTH block")
-    except urllib.error.URLError as e:
-        print(f"    [URL ERROR] {address_label}: {e.reason}")
+        resp = session.get(url, headers=make_headers(address), timeout=15)
+        if resp.status_code == 200:
+            return resp.json()
+        print(f"    [HTTP {resp.status_code}] {address_label}")
+        if resp.status_code == 401:
+            print("    ⚠  401 — curl_cffi session may need a fresh BEARER/COOKIE in AUTH block")
+        return None
     except Exception as e:
         print(f"    [ERROR] {address_label}: {e}")
-    return None
+        return None
 
 
 def fetch_pnl_stat(address):
@@ -189,7 +187,7 @@ def main():
 
     print(f"Loaded {len(entries)} address(es) from {INPUT_CSV}\n")
 
-    sample_row = entries[0][1] if entries else {}
+    sample_row  = entries[0][1] if entries else {}
     base_fields = list(sample_row.keys())
     extra_fields = [
         "winrate_7d", "token_num_7d",
